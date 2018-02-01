@@ -3,6 +3,18 @@
 * The deep learning framework is [Tensorflow/TF](https://www.tensorflow.org) 1.3 (compatible with 1.2 and 1.2.1)
 * Please contact author or open an issue for questions and suggestions
 
+**Cite this paper using BibTex:**
+
+
+    @inproceedings{shen2018biblosan,
+	Author = {Shen, Tao and Zhou, Tianyi and Long, Guodong and Jiang, Jing and Zhang, Chengqi},
+	Booktitle = {International Conference on Learning Representations (ICLR)},
+	Title = {Bi-Directional Block Self-Attention for Fast and Memory-Efficient Sequence Modeling},
+	Year = {2018}
+    }
+
+
+
 ## Overall Requirements
 * Python3 (verified on 3.5.2, or Anaconda3 4.2.0)
 * tensorflow>=1.2
