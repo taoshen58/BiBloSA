@@ -1,5 +1,5 @@
 # Experiments Codes for Bi-directional Block Self-attention
-* This repo is the code of paper *title*, <http://>
+* This repo is the code of paper [Bi-Directional Block Self-Attention for Fast and Memory-Efficient Sequence Modeling](https://openreview.net/forum?id=H1cWzoxA-)
 * The deep learning framework is [Tensorflow/TF](https://www.tensorflow.org) 1.3 (compatible with 1.2 and 1.2.1)
 * Please contact author or open an issue for questions and suggestions
 
