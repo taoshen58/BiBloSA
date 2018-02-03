@@ -2,6 +2,7 @@
 * This repo is the code of paper [Bi-Directional Block Self-Attention for Fast and Memory-Efficient Sequence Modeling](https://openreview.net/forum?id=H1cWzoxA-)
 * The deep learning framework is [Tensorflow/TF](https://www.tensorflow.org) 1.3 (compatible with 1.2 and 1.2.1)
 * Please contact author or open an issue for questions and suggestions
+* The codes for the Directional Self-Attention Network (DiSAN), the basis of BiBloSAN, are available [here](https://github.com/taoshen58/DiSAN)
 
 **Cite this paper using BibTex:**
 
