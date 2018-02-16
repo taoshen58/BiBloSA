@@ -8,6 +8,7 @@ from src.model.model_template import ModelTemplate
 from src.nn_utils.nn import linear
 from src.nn_utils.integration_func import generate_embedding_mat
 from src.nn_utils.baselines.interface import sentence_encoding_models
+from src.nn_utils.nn import bn_dense_layer, highway_net
 
 
 class ModelContextFusion(ModelTemplate):
@@ -55,7 +56,9 @@ class ModelContextFusion(ModelTemplate):
             out_rep = tf.concat([s1_rep, s2_rep, s1_rep - s2_rep, s1_rep * s2_rep], -1)
             pre_output = act_func(linear([out_rep], hn, True, 0., scope= 'pre_output', squeeze=False,
                                             wd=cfg.wd, input_keep_prob=cfg.dropout,is_train=self.is_train))
-            logits = linear([pre_output], self.output_class, True, 0., scope= 'logits', squeeze=False,
+            pre_output1 = highway_network(
+                pre_output, hn, True, 0., 'pre_output1', act_func_str, False, cfg.wd, cfg.dropout, self.is_train)
+            logits = linear([pre_output1], self.output_class, True, 0., scope= 'logits', squeeze=False,
                             wd=cfg.wd, input_keep_prob=cfg.dropout,is_train=self.is_train)
             self.tensor_dict[logits] = logits
         return logits # logits

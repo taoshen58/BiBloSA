@@ -164,6 +164,21 @@ def multi_conv1d(in_, filter_sizes, heights, padding, is_train=None, keep_prob=1
         return concat_out
 
 
+def highway_net(
+        input_tensor, hn, bias, bias_start=0.0, scope=None, activation='relu', enable_bn=False,
+        wd=0., keep_prob=1.0, is_train=None):
+    ivec = input_tensor.get_shape().as_list()[-1]
+    with tf.variable_scope(scope or "highway_layer"):
+        trans = bn_dense_layer(
+            input_tensor, ivec, bias, bias_start, 'map', activation, enable_bn, wd, keep_prob, is_train)
+        gate = bn_dense_layer(
+            input_tensor, ivec, bias, bias_start, 'gate', 'linear', enable_bn, wd, keep_prob, is_train)
+        gate = tf.nn.sigmoid(gate)
+        out = gate * trans + (1 - gate) * input_tensor
+
+        return out
+
+
 def highway_layer(arg, bias, bias_start=0.0, scope=None, wd=0.0, input_keep_prob=1.0, is_train=None):
     with tf.variable_scope(scope or "highway_layer"):
         d = arg.get_shape()[-1]  # embedding dim
