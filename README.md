@@ -4,6 +4,10 @@
 * Please contact author or open an issue for questions and suggestions
 * The codes for the Directional Self-Attention Network (DiSAN), the basis of BiBloSAN, are available [here](https://github.com/taoshen58/DiSAN)
 
+### Re-Implementation
+
+* **Pytorch** Implementation of BiBloSA by [@galsang](https://github.com/galsang) is available [here](https://github.com/galsang/BiBloSA-pytorch)
+
 **Cite this paper using BibTex:**
 
 
