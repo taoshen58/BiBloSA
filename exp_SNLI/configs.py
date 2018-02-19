@@ -34,7 +34,7 @@ class Configs(object):
         # @ ----------training ------
         parser.add_argument('--max_epoch', type=int, default=200, help='Max Epoch Number')
         parser.add_argument('--num_steps', type=int, default=500000, help='num_steps')  # fixme: limited steps num
-        parser.add_argument('--train_batch_size', type=int, default=64, help='Train Batch Size')
+        parser.add_argument('--train_batch_size', type=int, default=128, help='Train Batch Size')
         parser.add_argument('--test_batch_size', type=int, default=100, help='Test Batch Size')
         parser.add_argument('--optimizer', type=str, default='adadelta', help='Test Batch Size')
         parser.add_argument('--learning_rate', type=float, default=0.5, help='Learning rate')

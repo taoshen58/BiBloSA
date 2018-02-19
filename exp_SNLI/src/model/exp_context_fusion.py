@@ -39,13 +39,15 @@ class ModelContextFusion(ModelTemplate):
 
             s1_rep = sentence_encoding_models(
                 s1_emb, self.sent1_token_mask, cfg.context_fusion_method, act_func_str,
-                'ct_based_sent2vec', cfg.wd, self.is_train, cfg.dropout, block_len=cfg.block_len)
+                'ct_based_sent2vec', cfg.wd, self.is_train, cfg.dropout,
+                block_len=cfg.block_len, hn=hn)
 
             tf.get_variable_scope().reuse_variables()
 
             s2_rep = sentence_encoding_models(
                 s2_emb, self.sent2_token_mask, cfg.context_fusion_method, act_func_str,
-                'ct_based_sent2vec', cfg.wd, self.is_train, cfg.dropout, block_len=cfg.block_len)
+                'ct_based_sent2vec', cfg.wd, self.is_train, cfg.dropout,
+                block_len=cfg.block_len, hn=hn)
 
             self.tensor_dict['s1_rep'] = s1_rep
             self.tensor_dict['s2_rep'] = s2_rep
@@ -56,7 +58,7 @@ class ModelContextFusion(ModelTemplate):
             out_rep = tf.concat([s1_rep, s2_rep, s1_rep - s2_rep, s1_rep * s2_rep], -1)
             pre_output = act_func(linear([out_rep], hn, True, 0., scope= 'pre_output', squeeze=False,
                                             wd=cfg.wd, input_keep_prob=cfg.dropout,is_train=self.is_train))
-            pre_output1 = highway_network(
+            pre_output1 = highway_net(
                 pre_output, hn, True, 0., 'pre_output1', act_func_str, False, cfg.wd, cfg.dropout, self.is_train)
             logits = linear([pre_output1], self.output_class, True, 0., scope= 'logits', squeeze=False,
                             wd=cfg.wd, input_keep_prob=cfg.dropout,is_train=self.is_train)
