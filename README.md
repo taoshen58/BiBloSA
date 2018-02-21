@@ -56,7 +56,8 @@ These two functions share the similar parameter definitions:
 | lstm | Bi-LSTM | T | T |
 | gru | Bi-GRU | T | T |
 | sru | Bi-SRU (Simple Recurrent Unit) | T | T |
-| cnn | CNN with context fusion added | T | T |
+| multi_cnn | Multi-window CNN with context info added | T | T |
+| hrchy_cnn | Multi-layer CNN with resConnect + GLU | T | T |
 | multi_head | multi-head attention with attention dropout and positional encoding | T | T |
 | disa | Directional Self-attention(DiSA) | T | T |
 | block | Bi-directional Block Self-Attention(Bi-BloSA) | T | T |
@@ -190,7 +191,8 @@ Then, based on the parameters introduction and programming framework, please ref
 **Note** that due to many projects this repo includes, it is inevitable that there are some wrong when I organize the projects into this repo. If you confront some bugs or errors when running the codes, please feel free to report them by opening a issues. I will reply it ASAP.
 
 ## TODO
-* clean up the code.
+* ~~clean up and organise all neural net codes in folder **context_fusion**.~~ (Didn't be tested so far)
+* add the cleaned codes to **SNLI project**
 
 ## Acknowledge
 

@@ -1,11 +1,10 @@
 import tensorflow as tf
 from context_fusion.general import flatten, reconstruct, exp_mask, add_reg_without_bias,\
     exp_mask_for_high_rank, mask_for_high_rank, add_var_reg
-from context_fusion.basic import selu
+from context_fusion.general import selu
+
 
 # ----------------------fundamental-----------------------------
-
-
 def dropout(x, keep_prob, is_train, noise_shape=None, seed=None, name=None):
     with tf.name_scope(name or "dropout"):
         assert is_train is not None
@@ -177,6 +176,7 @@ def highway_layer(arg, bias, bias_start=0.0, scope=None, wd=0.0, input_keep_prob
         return out
 
         # read
+
 
 def highway_network(arg, num_layers, bias, bias_start=0.0, scope=None, wd=0.0, input_keep_prob=1.0, is_train=None):
     with tf.variable_scope(scope or "highway_network"):
@@ -350,6 +350,10 @@ def bn_dense_layer(input_tensor, hn, bias, bias_start=0.0, scope=None,
         activation_func = tf.nn.elu
     elif activation == 'selu':
         activation_func = selu
+    elif activation == 'sigmoid':
+        activation_func = tf.nn.sigmoid
+    elif activation == 'tanh':
+        activation_func = tf.nn.tanh
     else:
         raise AttributeError('no activation function named as %s' % activation)
 
@@ -357,8 +361,21 @@ def bn_dense_layer(input_tensor, hn, bias, bias_start=0.0, scope=None,
         linear_map = linear(input_tensor, hn, bias, bias_start, 'linear_map',
                             False, wd, keep_prob, is_train)
         if enable_bn:
+            # with tf.variable_scope('bn_module'):
+            #     linear_map = tf.cond(
+            #         is_train,
+            #         lambda: tf.contrib.layers.batch_norm(
+            #             linear_map, center=True, scale=True, is_training=True,
+            #             scope='bn'),
+            #         lambda: tf.contrib.layers.batch_norm(
+            #             linear_map, center=True, scale=True, is_training=False,
+            #             scope='bn', reuse=True),
+            #     )
             linear_map = tf.contrib.layers.batch_norm(
-                linear_map, center=True, scale=True, is_training=is_train, scope='bn')
+                linear_map, center=True, scale=True, is_training=is_train,
+                updates_collections=None,  decay=0.9,
+                scope='bn')
+
         return activation_func(linear_map)
 
 
@@ -371,11 +388,93 @@ def bn_layer(input_tensor, is_train, enable,scope=None):
             return tf.identity(input_tensor)
 
 
+# -------------- emb mat--------------
+def generate_embedding_mat(dict_size, emb_len, init_mat=None, extra_mat=None,
+                           extra_trainable=False, scope=None):
+    """
+    generate embedding matrix for looking up
+    :param dict_size: indices 0 and 1 corresponding to empty and unknown token
+    :param emb_len:
+    :param init_mat: init mat matching for [dict_size, emb_len]
+    :param extra_mat: extra tensor [extra_dict_size, emb_len]
+    :param extra_trainable:
+    :param scope:
+    :return: if extra_mat is None, return[dict_size+extra_dict_size,emb_len], else [dict_size,emb_len]
+    """
+    with tf.variable_scope(scope or 'gene_emb_mat'):
+        emb_mat_ept_and_unk = tf.constant(value=0, dtype=tf.float32, shape=[2, emb_len])
+        if init_mat is None:
+            emb_mat_other = tf.get_variable('emb_mat',[dict_size - 2, emb_len], tf.float32)
+        else:
+            emb_mat_other = tf.get_variable("emb_mat",[dict_size - 2, emb_len], tf.float32,
+                                            initializer=tf.constant_initializer(init_mat[2:], dtype=tf.float32,
+                                                                                verify_shape=True))
+        emb_mat = tf.concat([emb_mat_ept_and_unk, emb_mat_other], 0)
 
-    #output_size, bias, bias_start=0.0, scope=None, squeeze=False, wd=0.0, input_keep_prob=1.0,
-           #is_train=None
+        if extra_mat is not None:
+            if extra_trainable:
+                extra_mat_var = tf.get_variable("extra_emb_mat",extra_mat.shape, tf.float32,
+                                                initializer=tf.constant_initializer(extra_mat,
+                                                                                    dtype=tf.float32,
+                                                                                    verify_shape=True))
+                return tf.concat([emb_mat, extra_mat_var], 0)
+            else:
+                extra_mat_con = tf.constant(extra_mat, dtype=tf.float32)
+                return tf.concat([emb_mat, extra_mat_con], 0)
+        else:
+            return emb_mat
 
 
+def token_and_char_emb(if_token_emb=True, context_token=None, tds=None, tel=None,
+                       token_emb_mat=None, glove_emb_mat=None,
+                       if_char_emb=True, context_char=None, cds=None, cel=None,
+                       cos=None, ocd=None, fh=None, use_highway=True,highway_layer_num=None,
+                       wd=0., keep_prob=1., is_train=None):
+    with tf.variable_scope('token_and_char_emb'):
+        if if_token_emb:
+            with tf.variable_scope('token_emb'):
+                token_emb_mat = generate_embedding_mat(tds, tel, init_mat=token_emb_mat,
+                                                       extra_mat=glove_emb_mat,
+                                                       scope='gene_token_emb_mat')
+
+                c_token_emb = tf.nn.embedding_lookup(token_emb_mat, context_token)  # bs,sl,tel
+
+        if if_char_emb:
+            with tf.variable_scope('char_emb'):
+                char_emb_mat = generate_embedding_mat(cds, cel, scope='gene_char_emb_mat')
+                c_char_lu_emb = tf.nn.embedding_lookup(char_emb_mat, context_char)  # bs,sl,tl,cel
+
+                assert sum(ocd) == cos and len(ocd) == len(fh)
+
+                with tf.variable_scope('conv'):
+                    c_char_emb = multi_conv1d(c_char_lu_emb, ocd, fh, "VALID",
+                                              is_train, keep_prob, scope="xx")  # bs,sl,cocn
+        if if_token_emb and if_char_emb:
+            c_emb = tf.concat([c_token_emb, c_char_emb], -1)  # bs,sl,cocn+tel
+        elif if_token_emb:
+            c_emb = c_token_emb
+        elif if_char_emb:
+            c_emb = c_char_emb
+        else:
+            raise AttributeError('No embedding!')
+
+    if use_highway:
+        with tf.variable_scope('highway'):
+            c_emb = highway_network(c_emb, highway_layer_num, True, wd=wd,
+                                    input_keep_prob=keep_prob,is_train=is_train)
+    return c_emb
 
 
+def generate_feature_emb_for_c_and_q(feature_dict_size, feature_emb_len,
+                                     feature_name , c_feature, q_feature=None, scope=None):
+    with tf.variable_scope(scope or '%s_feature_emb' % feature_name):
+        emb_mat = generate_embedding_mat(feature_dict_size, feature_emb_len, scope='emb_mat')
+        c_feature_emb = tf.nn.embedding_lookup(emb_mat, c_feature)
+        if q_feature is not None:
+            q_feature_emb = tf.nn.embedding_lookup(emb_mat, q_feature)
+        else:
+            q_feature_emb = None
+        return c_feature_emb, q_feature_emb
+
+# -------------------END---------------------
 
