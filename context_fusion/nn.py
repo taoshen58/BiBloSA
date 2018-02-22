@@ -187,6 +187,21 @@ def highway_network(arg, num_layers, bias, bias_start=0.0, scope=None, wd=0.0, i
                                 input_keep_prob=input_keep_prob, is_train=is_train)
             prev = cur
         return cur
+
+
+def highway_net(
+        input_tensor, hn, bias, bias_start=0.0, scope=None, activation='relu', enable_bn=False,
+        wd=0., keep_prob=1.0, is_train=None):
+    ivec = input_tensor.get_shape().as_list()[-1]
+    with tf.variable_scope(scope or "highway_layer"):
+        trans = bn_dense_layer(
+            input_tensor, ivec, bias, bias_start, 'map', activation, enable_bn, wd, keep_prob, is_train)
+        gate = bn_dense_layer(
+            input_tensor, ivec, bias, bias_start, 'gate', 'linear', enable_bn, wd, keep_prob, is_train)
+        gate = tf.nn.sigmoid(gate)
+        out = gate * trans + (1 - gate) * input_tensor
+
+        return out
 # ------------------------------------------------------------
 # --------------------get logits------------------------------
 
