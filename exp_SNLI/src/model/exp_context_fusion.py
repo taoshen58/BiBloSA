@@ -6,9 +6,9 @@ import tensorflow as tf
 
 from src.model.model_template import ModelTemplate
 from src.nn_utils.nn import linear
-from src.nn_utils.integration_func import generate_embedding_mat
-from src.nn_utils.baselines.interface import sentence_encoding_models
-from src.nn_utils.nn import bn_dense_layer, highway_net
+from src.nn_utils.nn import generate_embedding_mat
+from src.nn_utils.context_fusion import sentence_encoding_models
+from src.nn_utils.nn import highway_net
 
 
 class ModelContextFusion(ModelTemplate):

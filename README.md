@@ -192,7 +192,8 @@ Then, based on the parameters introduction and programming framework, please ref
 
 ## TODO
 * ~~clean up and organise all neural net codes in folder **context_fusion**.~~ (Didn't be tested so far)
-* add the cleaned codes to **SNLI project**
+* ~~add the cleaned codes to **SNLI project**~~ (Didn't be tested so far)
+* test the codes updated before
 
 ## Acknowledge
 
