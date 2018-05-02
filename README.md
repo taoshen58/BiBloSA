@@ -4,6 +4,8 @@
 * Please contact author or open an issue for questions and suggestions
 * The codes for the Directional Self-Attention Network (DiSAN), the basis of BiBloSAN, are available [here](https://github.com/taoshen58/DiSAN)
 
+**News: A time- and memory-efficient self-attention mechanism named as Fast-DiSA has been proposed, which is as fast as multi-head self-attention but uses the multi-dim and positional masks techniques. The codes are released at [here](https://github.com/taoshen58/DiSAN/tree/master/Fast-DiSA)**
+
 ### Re-Implementation
 
 * **Pytorch** Implementation of BiBloSA by [@galsang](https://github.com/galsang) is available [here](https://github.com/galsang/BiBloSA-pytorch)
